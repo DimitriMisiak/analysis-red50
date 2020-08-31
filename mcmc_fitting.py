@@ -20,9 +20,9 @@ from import_package import custom_import
 data_dir, output_dir = custom_import()
 import mcmc_red as mcr
 
-from config import get_eval_dict
+from config_ethem import get_eval_dict
 from model import initiate_model, make_model_data, make_fake_data
-from process_data import get_processed_data
+#from process_data import get_processed_data
 from comparator import chi2_model
 
 #### dirty !!! should be better with classes
@@ -69,7 +69,12 @@ p0 = [evad[p] for p in param_bot]
 #
 #for md in model_opt:
 #    plt.loglog(md[0], md[1])
-
+nsteps=1000
+from tqdm import tqdm
+progress_bar = tqdm(total=nsteps)
+def chi2_model_progress(x):
+    progress_bar.update()
+    return chi2_model(x)
 
 
 # XXX MCMC
@@ -78,7 +83,7 @@ sampler_path = output_dir + '/mcmc_sampler/autosave'
 
 # running the mcmc analysis
 bounds = [(p/100, p*100) for p in p0]
-sampler = mcr.mcmc_sampler(chi2_model, bounds, nsteps=1000, path=sampler_path)
+sampler = mcr.mcmc_sampler(chi2_model_progress, bounds, nsteps=nsteps, path=sampler_path)
 
 
 # loading the mcmc results

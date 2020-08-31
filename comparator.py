@@ -16,15 +16,14 @@ from import_package import custom_import
 custom_import()
 import mcmc_red as mcr
 
-from config import get_eval_dict
+from config_ethem import get_eval_dict
 from model import initiate_model, make_model_data, make_fake_data
-from process_data import get_processed_data
+from raw_data import get_raw_data
 
 ### dirty !!! should be better with classes
-name_array, temp_array, res_array, exp_data = get_processed_data()
-norm = 120**-0.5
+t_array, exp_data = get_raw_data()
 
-def chi2_list(data_1, data_2, sigma_coeff=norm):
+def chi2_list(data_1, data_2, sigma_coeff=0.1):
     """ Return the summed chi2 between two given set of data.
     """
     chi2_tot = 0
@@ -60,7 +59,7 @@ if __name__ == "__main__":
     plt.close('all')
 
     evad = get_eval_dict()
-    param_top, param_bot, model_fun = initiate_model()
+    param_top, param_bot, ss_point = initiate_model()
 
     p0 = [evad[p] for p in param_bot]
     p1 = [evad[p]*0.9 for p in param_bot]
@@ -68,18 +67,18 @@ if __name__ == "__main__":
     model0 = make_model_data(p0)
     model1 = make_model_data(p1)
 
-    fake0 = make_fake_data(model0, sigma_coeff=120**-0.5)
+    fake0 = make_fake_data(model0, sigma_coeff=0.1)
 
     ddf = 0
     for md in model0:
-        freq, psd = md
-        ddf += len(freq)
+        i_array, iv_list = md
+        ddf += len(i_array)
 
-    self_chi2_model = chi2_list(model0, model0, sigma_coeff=120**-0.5)
-    self_chi2_fake = chi2_list(fake0, fake0, sigma_coeff=120**-0.5)
-    chi2_check_00 = chi2_list(model0, fake0, sigma_coeff=120**-0.5)
-    chi2_check_01 = chi2_list(model0, model1, sigma_coeff=120**-0.5)
-    chi2_check_0exp = chi2_list(model0, exp_data, sigma_coeff=120**-0.5)
+    self_chi2_model = chi2_list(model0, model0)
+    self_chi2_fake = chi2_list(fake0, fake0)
+    chi2_check_00 = chi2_list(model0, fake0)
+    chi2_check_01 = chi2_list(model0, model1)
+    chi2_check_0exp = chi2_list(model0, exp_data)
     chi2_real = chi2_model(p0, check_print=True)
 
     print("Self Chi2 Model = ", self_chi2_model)

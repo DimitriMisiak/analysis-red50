@@ -168,7 +168,8 @@ def mcmc_plot(ndim, chain, lnprob, acc, labels, scale='linear', savedir=None):
     ax[0].set_ylabel('p0')
 
     for c in chain[:,:,0]:
-        funk = emcee.autocorr.function(c)
+#        funk = emcee.autocorr.function(c)
+        funk = emcee.autocorr.function_1d(c)
         ax[0].plot(c)
         ax[1].plot(funk)
 
@@ -233,7 +234,7 @@ if __name__ == "__main__":
     
     # XXX MCMC
     # save directory
-    sampler_path = '/home/misiak/projects/analysis-elec/mcmc_sampler/output_cc_2'
+    sampler_path = '/home/misiak/projects/analysis-red50/mcmc_sampler/output_cc_2'
     
     # loading the mcmc results
     logd, chain, lnprob, acc = mcr.get_mcmc_sampler(sampler_path)

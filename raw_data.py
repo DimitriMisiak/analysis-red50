@@ -28,50 +28,42 @@ def get_raw_data():
 
     data_dir, output_dir = custom_import()
 
-    data_dir_ac = ''.join((data_dir, '/Bruit_AC'))
+    vi_path = ''.join((data_dir, '/vi_run53_red50.csv'))
 
-    log_path = ''.join((data_dir_ac, '/log_data'))
+    i_data, v_data, t_data = np.loadtxt(vi_path, comments='#', unpack=True)
 
-    name_array, temp_list, res_list = np.loadtxt(log_path, dtype=str, unpack=True)
+    t_array = np.unique(t_data)
 
-    temp_array = temp_list.astype(float)
-    res_array = res_list.astype(float)
+    iv_list = list()
+    for t in t_array:
+        index_array = np.where(t_data == t)[0]
+        i_array = i_data[index_array]
+        v_array = v_data[index_array]
+      
+        iv_list.append( np.vstack((i_array, v_array)) )
 
-    xy_data_list = list()
-
-    for i,name in enumerate(name_array):
-
-        file_name = '{}_0_PSD_Corr.txt'.format(name)
-        file_path = '/'.join((data_dir_ac, file_name))
-
-        freq_array, lpsd_array = np.loadtxt(file_path, unpack=True)[:,1:]
-
-        xy_data = np.vstack((freq_array, lpsd_array))
-        xy_data_list.append(xy_data)
-
-    return name_array, temp_array, res_array, xy_data_list
+    return t_array, iv_list
 
 if __name__ == '__main__':
-
-    name_array, temp_array, res_array, data_list = get_raw_data()
-
-    ind_sort = temp_array.argsort()
-
-    cmap = plt.get_cmap('magma')
-
-    plt.close('all')
-    plt.figure('noise dict plot', figsize=(10,7))
-
-    for i in ind_sort:
-        name = name_array[i]
-        temp = temp_array[i]
-        res = res_array[i]
-        freq, lpsd = data_list[i]
-        color = cmap((i+1.)/(len(ind_sort)+1))
-
-        plt.loglog(freq, lpsd**2,
-                   label='{}, {} K, {:.2e} $\Omega$'.format(name, temp, res),
-                   color=color)
-
-    plt.legend()
-    plt.grid(True)
+    
+    t_array, iv_list = get_raw_data()
+    
+    plt.figure(figsize=(8,5))
+    
+    for t, iv_array in zip(t_array, iv_list):
+        i_array, v_array = iv_array
+        plt.errorbar(i_array, v_array, yerr=v_array*0.1,
+                     lw=1., ls='-',
+                     label='{0:.1f} mK'.format(t*1e3))
+    
+    plt.grid()
+    plt.xlabel('Voltage [V]')
+    plt.ylabel('Current [A]')
+    plt.ylim(1e-8, 1e-2)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+    plt.tight_layout(rect=(0., 0., 0.8, 1.))
+    
+    
+    print('Done')
